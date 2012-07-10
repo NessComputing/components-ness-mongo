@@ -41,20 +41,24 @@ public final class BSONTransformerBinder
     public static final Named DECODING_NAMED = Names.named(DECODING_NAME);
 
     @Inject(optional=true)
-    void injectBSONTransformers(@Named(ENCODING_NAME) final Map<Class<?>, Transformer> encodingTransformers,
-                                @Named(DECODING_NAME) final Map<Class<?>, Transformer> decodingTransformers)
+    void injectBSONEncodingTransformers(@Named(ENCODING_NAME) final Map<Class<?>, Transformer> encodingTransformers)
     {
-        Preconditions.checkNotNull(encodingTransformers, "encoding transformer map must not be null!");
-        Preconditions.checkNotNull(decodingTransformers, "decoding transformer map must not be null!");
+        Preconditions.checkNotNull(encodingTransformers, "transformers can not be null!");
 
         for (Map.Entry<Class<?>, Transformer> entry : encodingTransformers.entrySet()) {
             BSON.addEncodingHook(entry.getKey(), entry.getValue());
         }
+    }
+
+    @Inject(optional=true)
+    void injectBSONDecodingTransformers(@Named(DECODING_NAME) final Map<Class<?>, Transformer> decodingTransformers)
+    {
+        Preconditions.checkNotNull(decodingTransformers, "transformers can not be null!");
 
         for (Map.Entry<Class<?>, Transformer> entry : decodingTransformers.entrySet()) {
             BSON.addDecodingHook(entry.getKey(), entry.getValue());
         }
-}
+    }
 
     public static LinkedBindingBuilder<Transformer> bindEncodingTransformer(final Binder binder, final Class<?> clazz)
     {
