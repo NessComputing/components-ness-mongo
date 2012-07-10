@@ -198,7 +198,7 @@ public class MongoWriter implements Runnable
             Thread.currentThread().interrupt();
         }
 
-        LOG.warn("Could not offer object to queue, sleeping for %s sec!", mongoWriterConfig.getFailureCooloffTime());
+        LOG.warn("Could not offer object to queue, sleeping for %s!", mongoWriterConfig.getFailureCooloffTime());
         this.cooloffTime.compareAndSet(-1L, System.nanoTime() + mongoWriterConfig.getFailureCooloffTime().getMillis() * 1000000L);
 
         return false;
