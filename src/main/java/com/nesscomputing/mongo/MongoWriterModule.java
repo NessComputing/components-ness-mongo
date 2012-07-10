@@ -43,7 +43,7 @@ public class MongoWriterModule extends AbstractModule
 
     public MongoWriterModule(final String writerName)
     {
-        Preconditions.checkState(!StringUtils.isBlank(writerName), "Writer name %s is illegal!", writerName);
+        Preconditions.checkState(!StringUtils.isBlank(writerName), "Writer name must not be blank!");
 
         this.writerName = writerName;
     }
@@ -61,7 +61,6 @@ public class MongoWriterModule extends AbstractModule
                 export(MongoWriter.class).annotatedWith(named).as(format("ness.mongo.writer:name=%s", writerName));
             }
         });
-
     }
 
     public static class MongoWriterProvider extends AbstractLifecycleProvider<MongoWriter> implements Provider<MongoWriter>
