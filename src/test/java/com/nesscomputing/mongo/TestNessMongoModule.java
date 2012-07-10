@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ness.mongo;
+package com.nesscomputing.mongo;
 
 import java.util.Map;
 import java.util.UUID;
@@ -29,6 +29,8 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Stage;
 import com.google.inject.name.Named;
+import com.nesscomputing.mongo.BSONTransformerBinder;
+import com.nesscomputing.mongo.NessMongoModule;
 
 public class TestNessMongoModule
 {

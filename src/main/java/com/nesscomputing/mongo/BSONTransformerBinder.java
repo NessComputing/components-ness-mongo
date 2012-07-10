@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ness.mongo;
+package com.nesscomputing.mongo;
 
 import java.util.Map;
 

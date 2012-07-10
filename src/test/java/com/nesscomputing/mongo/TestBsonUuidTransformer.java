@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ness.mongo;
+package com.nesscomputing.mongo;
 
 import java.util.UUID;
 
-import ness.mongo.BSONEncodingTransformers.BsonUuidTransformer;
 
 import org.junit.Before;
+
+import com.nesscomputing.mongo.BSONEncodingTransformers.BsonUuidTransformer;
 
 public class TestBsonUuidTransformer extends AbstractTestBSONTransformers<UUID, String>
 {
