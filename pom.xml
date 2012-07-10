@@ -18,7 +18,7 @@
   <groupId>com.nesscomputing.components</groupId>
   <artifactId>ness-mongo</artifactId>
   <name>ness-mongo</name>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>Ness Mongo glue</description>
 
