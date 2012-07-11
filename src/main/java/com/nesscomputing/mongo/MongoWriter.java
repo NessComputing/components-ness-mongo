@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import org.skife.config.TimeSpan;
 import org.weakref.jmx.Managed;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -46,6 +47,8 @@ import com.nesscomputing.logging.Log;
  */
 public class MongoWriter implements Runnable
 {
+    private static final Log LOG = Log.findLog();
+
     private static final Function<Callable<DBObject>, DBObject> CALLABLE_FUNCTION = new Function<Callable<DBObject>, DBObject>() {
         @Override
         public DBObject apply(@Nullable final Callable<DBObject> callable) {
@@ -57,8 +60,6 @@ public class MongoWriter implements Runnable
             }
         }
     };
-
-    private static final Log LOG = Log.findLog();
 
     /** Queue of pending writes.  */
     private final LinkedBlockingQueue<Callable<DBObject>> writeQueue;
@@ -172,10 +173,15 @@ public class MongoWriter implements Runnable
 
         final long cooloffTime = this.cooloffTime.get();
 
-        if (cooloffTime > 0 && System.nanoTime() < cooloffTime) {
-            opsEnqCooloff.incrementAndGet();
-            LOG.trace("Cooling off from enqueue failure");
-            return false;
+        if (cooloffTime > 0) {
+            if (System.nanoTime() < cooloffTime) {
+                opsEnqCooloff.incrementAndGet();
+                LOG.trace("Cooling off from enqueue failure");
+                return false;
+            }
+            else {
+                this.cooloffTime.set(-1L);
+            }
         }
 
         try {
@@ -204,7 +210,7 @@ public class MongoWriter implements Runnable
         return false;
     }
 
-    private void flushToMongo(final List<Callable<DBObject>> dbObjects)
+    protected void flushToMongo(final List<Callable<DBObject>> dbObjects)
     {
         LOG.trace("Starting write of %d elements...", dbObjects.size());
 
@@ -228,23 +234,12 @@ public class MongoWriter implements Runnable
     @Override
     public void run()
     {
-        final TimeSpan tickerTime  = mongoWriterConfig.getTickerTime();
+        final TimeSpan tickerTime = mongoWriterConfig.getTickerTime();
+        LOG.info("Mongo writer for %s starting (ticker: %s)...", collectionName, tickerTime);
 
-        LOG.info("Mongo writer for %s starting (ticker: %s) ...", collectionName, tickerTime);
         try {
             while (taskRunning.get()) {
-                final Callable<DBObject> dbObject = writeQueue.poll();
-                if (dbObject != null) {
-                    final List<Callable<DBObject>> dbObjects = Lists.newArrayList();
-                    dbObjects.add(dbObject);
-                    writeQueue.drainTo(dbObjects);
-                    final int size = dbObjects.size();
-                    opsDequeued.addAndGet(size);
-                    if (size > longestBurst.get()) {
-                        longestBurst.set(size);
-                    }
-                    flushToMongo(dbObjects);
-                }
+                runLoop();
                 Thread.sleep(tickerTime.getMillis());
             }
         }
@@ -252,6 +247,23 @@ public class MongoWriter implements Runnable
             Thread.currentThread().interrupt();
         }
         LOG.info("Exiting");
+    }
+
+    @VisibleForTesting
+    void runLoop()
+    {
+        final Callable<DBObject> dbObject = writeQueue.poll();
+        if (dbObject != null) {
+            final List<Callable<DBObject>> dbObjects = Lists.newArrayList();
+            dbObjects.add(dbObject);
+            writeQueue.drainTo(dbObjects);
+            final int size = dbObjects.size();
+            opsDequeued.addAndGet(size);
+            if (size > longestBurst.get()) {
+                longestBurst.set(size);
+            }
+            flushToMongo(dbObjects);
+        }
     }
 
     @Managed
