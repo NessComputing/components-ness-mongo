@@ -23,6 +23,7 @@ import org.joda.time.ReadableInstant;
 
 import com.google.common.base.Preconditions;
 
+@SuppressWarnings("PMD.MissingStaticMethodInNonInstantiatableClass")
 final class BSONEncodingTransformers
 {
     private BSONEncodingTransformers()
